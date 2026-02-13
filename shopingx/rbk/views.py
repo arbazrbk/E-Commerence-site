@@ -30,8 +30,5 @@ def productdetail(request):
 def order(request):
     return render(request,'rbk/order.html')
 
-def productdetail(request):
-    return render(request,'rbk/productdetail.html')
-
 def profile(request):
     return render(request,'rbk/profile.html')
