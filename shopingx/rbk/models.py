@@ -28,8 +28,7 @@ Category_choices =(
     ('laptop','laptop'),
     ('topwear','topwear'),
     ('bottomwear','bottomwear')
-    
-    
+        
 )
 
 class Product(models.Model):

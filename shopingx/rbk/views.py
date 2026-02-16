@@ -3,12 +3,25 @@ from .models import customer, Product, Cart
 from django.views import View
 
 class profileview(View):
-    def get(self):
-        topwear = Product.onject.filter(category='topwear')
-        bottomwear = Product.onject.filter(category='bottomwear')
-        mobile = Product.onject.filter(category='mobile')
-        laptop = Product.onject.filter(category='laptop')
-        return render(self.request,'rbk/profile.html',{'topwear':topwear,'bottomwear':bottomwear,'mobile':mobile,'laptop':laptop})
+    def get(self, request):
+        topwear = Product.objects.filter(category='topwear')
+        bottomwear = Product.objects.filter(category='bottomwear')
+        mobile = Product.objects.filter(category='mobile')
+        laptop = Product.objects.filter(category='laptop')
+        return render(request, 'rbk/profile.html', {
+            'topwear': topwear,
+            'bottomwear': bottomwear,
+            'mobile': mobile,
+            'laptop': laptop
+        })
+
+
+class ProductDetailView(View):
+    def get(self, request, pk):
+        product = Product.objects.get(pk=pk)
+        return render(request, 'rbk/productdetail.html', {'product': product})
+    
+    
 def home(request):
     return render(request,'rbk/home.html')
 
@@ -24,15 +37,40 @@ def buynow(request):
 def changepassword(request):
     return render(request,'rbk/changepassword.html')
 
-def login (request):
-    return render(request,'rbk/login.html')
+class LoginView(View):
+    def get(self,request):
+      return render(request,'rbk/login.html')
+  
+    def get(self,request):
+        form = LoginView()
+        return render(request,'rbk/login.html',{'form':form})
+    
+    def post(self,request):
+        form = Loginform(request.POST)
+        if data.is_valid():
+            messages.sucess(request,'Congratulations!! Login Successfully')
+            form.save()
+        return render(request,'rbk/login.html',{'form':form})
 
-def mobile(request):
-    return render(request,'rbk/mobile.html')
+          
 
-def customerregistration(request):
-    return render(request,'rbk/customerregistration.html')
+def mobile(request,data=None):
+    if data == None:
+       mobile = Product.object.filter(category='mobile')
+    elif data == 'Redmi' or data == 'Samasung':
+        mobile = Product.object.filter(category='mobile').filter(brand=data)   
+    return render(request,'rbk/mobile.html',{'mobile':mobile})
 
+class customerregistration(View):
+    def get(self,request):
+        foam = registrationform()
+        return render(request,'rbk/customerregistration.html',{'form':foam})
+    
+    def post(self,request):
+        form = registrationform(request.POST)
+        if form.is_valid():
+            messages.sucess(request,'Congratulations!! Registered Successfully')
+        return render(request,'rbk/customerregistration.html',{'form':form})
 def productdetail(request):
     return render(request,'rbk/productdetail.html')
 
