@@ -1,5 +1,14 @@
 from django.shortcuts import render
+from .models import customer, Product, Cart
+from django.views import View
 
+class profileview(View):
+    def get(self):
+        topwear = Product.onject.filter(category='topwear')
+        bottomwear = Product.onject.filter(category='bottomwear')
+        mobile = Product.onject.filter(category='mobile')
+        laptop = Product.onject.filter(category='laptop')
+        return render(self.request,'rbk/profile.html',{'topwear':topwear,'bottomwear':bottomwear,'mobile':mobile,'laptop':laptop})
 def home(request):
     return render(request,'rbk/home.html')
 
@@ -32,3 +41,6 @@ def order(request):
 
 def profile(request):
     return render(request,'rbk/profile.html')
+
+def orders(request):
+    return render(request, 'rbk/orders.html')
