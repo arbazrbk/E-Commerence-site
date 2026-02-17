@@ -1,8 +1,10 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from .models import customer, Product, Cart
 from django.views import View
 from .forms import Registrationforms, Loginforms
 from django.contrib import messages
+from django.db.models import Q
 
 class profileview(View):
     def get(self, request):
@@ -51,7 +53,53 @@ def showcart(request):
                 tempamount = (p.quantity * p.product.discounted_price)
                 amount += tempamount
             totalamount = amount + shipingamount
-        return render(request,'rbk/addtocart.html', {'cart': cart, 'totalamount': totalamount})
+            return render(request,'rbk/addtocart.html', {'cart': cart, 'totalamount': totalamount , 'amount': amount})
+        else:
+            return render(request,'rbk/emptycart.html')
+        
+def plus_cart(request):
+    if request.method == 'GET':
+        prod_id = request.GET['prod_id']
+        c = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
+        c.quantity += 1
+        c.save()
+        amount = 0.0
+        shipingamount = 70.0
+        totalamount = 0.0
+        cart_product = [p for p in Cart.objects.all() if p.user == request.user]
+        for p in cart_product:
+            tempamount = (p.quantity * p.product.discounted_price)
+            amount += tempamount
+            totalamount = amount + shipingamount
+            
+            data = {
+                'quantity': c.quantity,
+                'amount': amount,
+                'totalamount': totalamount
+            }
+            return JsonResponse(data) 
+        
+def minus_cart(request):
+        if request.method == 'GET':
+           prod_id = request.GET['prod_id']
+           c = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
+           c.quantity -= 1
+           c.save()
+           amount = 0.0
+           shipingamount = 70.0
+           totalamount = 0.0
+           cart_product = [p for p in Cart.objects.all() if p.user == request.user]
+           for p in cart_product:
+               tempamount = (p.quantity * p.product.discounted_price)
+               amount += tempamount
+               totalamount = amount + shipingamount
+            
+               data = {
+                'quantity': c.quantity,
+                'amount': amount,
+                'totalamount': totalamount
+                }
+               return JsonResponse(data)       
 def buynow(request):
     return render(request,'rbk/buynow.html')
 
