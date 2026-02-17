@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from .models import customer, Product, Cart
 from django.views import View
+from .forms import Registrationforms, Loginforms
+from django.contrib import messages
 
 class profileview(View):
     def get(self, request):
@@ -26,7 +28,8 @@ def home(request):
     return render(request,'rbk/home.html')
 
 def address(request):
-    return render(request,'rbk/address.html')
+    ad = customer.objects.filter(user=request.user)
+    return render(request,'rbk/address.html', {'ad': ad,'active': 'btn-primary'})
 
 def addtocart(request):
     return render(request,'rbk/addtocart.html')
@@ -42,12 +45,12 @@ class LoginView(View):
       return render(request,'rbk/login.html')
   
     def get(self,request):
-        form = LoginView()
+        form = Loginforms()
         return render(request,'rbk/login.html',{'form':form})
     
     def post(self,request):
-        form = Loginform(request.POST)
-        if data.is_valid():
+        form = Loginforms(request.POST)
+        if form.is_valid():
             messages.sucess(request,'Congratulations!! Login Successfully')
             form.save()
         return render(request,'rbk/login.html',{'form':form})
@@ -63,11 +66,11 @@ def mobile(request,data=None):
 
 class customerregistration(View):
     def get(self,request):
-        foam = registrationform()
+        foam = Registrationforms()
         return render(request,'rbk/customerregistration.html',{'form':foam})
     
     def post(self,request):
-        form = registrationform(request.POST)
+        form = Registrationforms(request.POST)
         if form.is_valid():
             messages.sucess(request,'Congratulations!! Registered Successfully')
         return render(request,'rbk/customerregistration.html',{'form':form})
