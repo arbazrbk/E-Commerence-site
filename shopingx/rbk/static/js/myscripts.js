@@ -55,3 +55,21 @@ $('.minus-cart').click(function(){
         }
     })
 })
+
+$('.remove-cart').click(function(){
+    var id = $(this).attr("pid").toString();
+    var eml = this
+    $.ajax({
+        type: "GET",
+        url: "/removecart",
+        data: {
+            prod_id: id
+        },
+        success: function(data){
+            eml.innerText = data.quantity
+            document.getElementById("amount").innerText = "Rs. " + data.amount
+            document.getElementById("totalamount").innerText = "Rs. " + data.totalamount
+            eml.parentNode.parentNode.parentNode.remove()
+            }
+    })
+})

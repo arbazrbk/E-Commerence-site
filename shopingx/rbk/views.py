@@ -99,7 +99,28 @@ def minus_cart(request):
                 'amount': amount,
                 'totalamount': totalamount
                 }
-               return JsonResponse(data)       
+               return JsonResponse(data)  
+def remove_cart(request):
+        if request.method == 'GET':
+           prod_id = request.GET['prod_id']
+           c = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
+           c.quantity -= 1
+           c.delete()
+           amount = 0.0
+           shipingamount = 70.0
+           totalamount = 0.0
+           cart_product = [p for p in Cart.objects.all() if p.user == request.user]
+           for p in cart_product:
+               tempamount = (p.quantity * p.product.discounted_price)
+               amount += tempamount
+               totalamount = amount + shipingamount
+            
+               data = {
+                'amount': amount,
+                'totalamount': totalamount
+                }
+               return JsonResponse(data)  
+                               
 def buynow(request):
     return render(request,'rbk/buynow.html')
 
