@@ -32,8 +32,17 @@ def address(request):
     return render(request,'rbk/address.html', {'ad': ad,'active': 'btn-primary'})
 
 def addtocart(request):
+    user = request.user
+    product_id = request.Get.get('Product_id')
+    product = Product.objects.get(id=product_id)
+    Cart(user=user, product_id=product).save()
     return render(request,'rbk/addtocart.html')
 
+def showcart(request):
+    if request.user.is_authenticated:
+        user = request.user
+        cart = Cart.objects.filter(user=user)
+        return render(request,'rbk/addtocart.html', {'cart': cart})
 def buynow(request):
     return render(request,'rbk/buynow.html')
 

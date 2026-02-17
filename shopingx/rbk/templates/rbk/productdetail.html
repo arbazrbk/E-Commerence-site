@@ -12,6 +12,11 @@
    <hr>
    <p>Product Description: {{ product.description }}</p> <br>
    <h4>Rs. {{ product.discounted_price }} <small class="fw-light text-decoration-line-through">{{product.selling_price}}</small></h4> <br>
+
+   <form action="/addtocart/" class ="d-inline">
+    <input type="hidden" name="product_id" value={{ product.id }} id = "product_id">
+    <button type="submit" class="btn btn-primary shadow px-5 py-2">Add to Cart</button>
+   </form>
    <a href="{% url 'addtocart' %}" class="btn btn-primary shadow px-5 py-2">Add to Cart</a>
    <a href="{% url 'buynow' %}" class="btn btn-danger shadow px-5 py-2 ms-4">Buy Now</a>
    <h5 class="mt-5">Available Offers</h5>
