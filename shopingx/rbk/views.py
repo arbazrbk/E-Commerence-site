@@ -172,3 +172,17 @@ def profile(request):
 
 def orders(request):
     return render(request, 'rbk/orders.html')
+
+def checkout(request):
+    user = request.user
+    add = customer.objects.filter(user = user)
+    cart_product = Cart.objects.filter(user=user)
+    amount = 0.0
+    shipingamount = 70.0
+    totalamount = 0.0
+    cart_product = [p for p in Cart.objects.all() if p.user == request.user]
+    for p in cart_product:
+        tempamount = (p.quantity * p.product.discounted_price)
+        amount += tempamount
+        totalamount = amount + shipingamount
+    return render(request, 'rbk/checkout.html', {'add': add, 'totalamount': totalamount, 'cart_product': cart_product})    
