@@ -1,13 +1,13 @@
 from django.contrib import admin
-from .models import customer,Product,Cart,orderplace
+from .models import Customer, Product, Cart, orderplace
 
-@admin.register(customer)
-class customeradmin(admin.ModelAdmin):
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
     list_display = ['id','name','locality','zipcode','state']   
     
 @admin.register(Product)
 class Productadmin(admin.ModelAdmin):    
-    list_display = ['id','product_id','tiltle','selling_price','discounted_price','description','brand','category','product_image']    
+    list_display = ['id','product_id','title','selling_price','discounted_price','description','brand','category','product_image']    
 
 @admin.register(Cart)
 class Cartadmin(admin.ModelAdmin):

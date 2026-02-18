@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render
-from .models import customer, Product, Cart
+from .models import Customer, Product, Cart
 from django.views import View
 from .forms import Registrationforms, Loginforms
 from django.contrib import messages
@@ -33,28 +33,15 @@ class ProductDetailView(View):
         item_already_in_cart = Cart.objects.filter(Q(product=product.id) & Q(user = request.user)).exists()
         return render(request, 'rbk/productdetail.html', {'product': product,'item_already_in_cart': item_already_in_cart})
     
-@login_required    
-def home(request):
-    topwear = Product.objects.filter(category='topwear')
-    bottomwear = Product.objects.filter(category='bottomwear')
-    mobile = Product.objects.filter(category='mobile')
-    laptop = Product.objects.filter(category='laptop')
-    return render(request,'rbk/home.html', {
-        'topwear': topwear,
-        'bottomwear': bottomwear,
-        'mobile': mobile,
-        'laptop': laptop
-    })
-
 @login_required
 def address(request):
-    ad = customer.objects.filter(user=request.user)
+    ad = Customer.objects.filter(user=request.user)
     return render(request,'rbk/address.html', {'ad': ad,'active': 'btn-primary'})
 
 @login_required
 def addtocart(request):
     user = request.user
-    product_id = request.Get.get('Product_id')
+    product_id = request.GET.get('product_id')
     product = Product.objects.get(id=product_id)
     Cart(user=user, product_id=product).save()
     return render(request,'rbk/addtocart.html')
@@ -158,18 +145,9 @@ def changepassword(request):
     return render(request,'rbk/changepassword.html')
 
 @method_decorator(login_required, name='dispatch')
-class LoginView(View):  
-    def get(self,request):
-        form = Loginforms()
-        return render(request,'rbk/login.html',{'form':form})
+def LoginView(request):  
+        return render(request,'rbk/login.html')
     
-    def post(self,request):
-        form = Loginforms(request.POST)
-        if form.is_valid():
-            messages.sucess(request,'Congratulations!! Login Successfully')
-            form.save()
-        return render(request,'rbk/login.html',{'form':form})
-
           
 
 def mobile(request,data=None):
@@ -189,18 +167,10 @@ class customerregistration(View):
     def post(self,request):
         form = Registrationforms(request.POST)
         if form.is_valid():
-            messages.sucess(request,'Congratulations!! Registered Successfully')
+            messages.success(request,'Congratulations!! Registered Successfully')
         return render(request,'rbk/customerregistration.html',{'form':form})
-def productdetail(request):
-    return render(request,'rbk/productdetail.html')
 
-def order(request):
-    user = request.user
-    op= orderplace.objects.filter(user=user)
-    return render(request,'rbk/order.html',{'order_placed': op})
 
-def profile(request):
-    return render(request,'rbk/profile.html')
 
 def orders(request):
     user = request.user
@@ -209,7 +179,7 @@ def orders(request):
 
 def checkout(request):
     user = request.user
-    add = customer.objects.filter(user = user)
+    add = Customer.objects.filter(user = user)
     cart_product = Cart.objects.filter(user=user)
     amount = 0.0
     shipingamount = 70.0
