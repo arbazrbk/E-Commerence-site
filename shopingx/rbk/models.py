@@ -13,15 +13,16 @@ State_choices=(
     ('yasin','yasin'),
 )
 
-class customer(models.Model):
+
+class Customer(models.Model):
     User = models.ForeignKey(User,on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     locality = models.CharField(max_length=100)
     zipcode = models.IntegerField(validators=[MinValueValidator(10000), MaxValueValidator(99999)])
     state = models.CharField(choices=State_choices,max_length=100)
 
-def __str__(self):
-    return str(self.id)
+    def __str__(self):
+        return str(self.id)
 
 Category_choices =(
     ('mobile','mobile'),
@@ -33,7 +34,7 @@ Category_choices =(
 
 class Product(models.Model):
     product_id = models.CharField(max_length=100)
-    tiltle = models.CharField(max_length = 200)
+    title = models.CharField(max_length = 200)
     selling_price = models.FloatField(max_length=200)
     discounted_price = models.FloatField(max_length=100)
     description = models.CharField(max_length=200)
@@ -61,11 +62,11 @@ Status_choices = (
 
 class orderplace(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
-    customer = models.ForeignKey(customer,on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer,on_delete=models.CASCADE)
     product = models.ForeignKey(Product,on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     ordered_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(choices=Status_choices,default='Pending')
+    status = models.CharField(choices=Status_choices,default='pending')
     
 def __str__(self):
     return str(self.id)    

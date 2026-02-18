@@ -5,6 +5,12 @@ from django.views import View
 from .forms import Registrationforms, Loginforms
 from django.contrib import messages
 from django.db.models import Q
+from .models import orderplace
+from django.shortcuts import redirect
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+
+
 
 class profileview(View):
     def get(self, request):
@@ -25,14 +31,16 @@ class ProductDetailView(View):
         product = Product.objects.get(pk=pk)
         return render(request, 'rbk/productdetail.html', {'product': product})
     
-    
+@login_required    
 def home(request):
     return render(request,'rbk/home.html')
 
+@login_required
 def address(request):
     ad = customer.objects.filter(user=request.user)
     return render(request,'rbk/address.html', {'ad': ad,'active': 'btn-primary'})
 
+@login_required
 def addtocart(request):
     user = request.user
     product_id = request.Get.get('Product_id')
@@ -40,6 +48,7 @@ def addtocart(request):
     Cart(user=user, product_id=product).save()
     return render(request,'rbk/addtocart.html')
 
+@login_required
 def showcart(request):
     if request.user.is_authenticated:
         user = request.user
@@ -120,17 +129,25 @@ def remove_cart(request):
                 'totalamount': totalamount
                 }
                return JsonResponse(data)  
+
                                
+def paymentdone(request):
+    user = request.user
+    custid = request.GET.get('custid')
+    cart = Cart.objects.filter(user=user)
+    for c in cart:
+        orderplace(user=user, customer_id=custid, product=c.product, quantity=c.quantity).save()
+        c.delete()
+    return redirect('orders')    
+                                       
 def buynow(request):
     return render(request,'rbk/buynow.html')
 
 def changepassword(request):
     return render(request,'rbk/changepassword.html')
 
-class LoginView(View):
-    def get(self,request):
-      return render(request,'rbk/login.html')
-  
+@method_decorator(login_required, name='dispatch')
+class LoginView(View):  
     def get(self,request):
         form = Loginforms()
         return render(request,'rbk/login.html',{'form':form})
@@ -165,13 +182,17 @@ def productdetail(request):
     return render(request,'rbk/productdetail.html')
 
 def order(request):
-    return render(request,'rbk/order.html')
+    user = request.user
+    op= orderplace.objects.filter(user=user)
+    return render(request,'rbk/order.html',{'order_placed': op})
 
 def profile(request):
     return render(request,'rbk/profile.html')
 
 def orders(request):
-    return render(request, 'rbk/orders.html')
+    user = request.user
+    orders = orderplace.objects.filter(user=user)
+    return render(request, 'rbk/orders.html', {'orders': orders})
 
 def checkout(request):
     user = request.user
