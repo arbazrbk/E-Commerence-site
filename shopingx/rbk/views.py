@@ -29,11 +29,22 @@ class profileview(View):
 class ProductDetailView(View):
     def get(self, request, pk):
         product = Product.objects.get(pk=pk)
-        return render(request, 'rbk/productdetail.html', {'product': product})
+        item_already_in_cart = False
+        item_already_in_cart = Cart.objects.filter(Q(product=product.id) & Q(user = request.user)).exists()
+        return render(request, 'rbk/productdetail.html', {'product': product,'item_already_in_cart': item_already_in_cart})
     
 @login_required    
 def home(request):
-    return render(request,'rbk/home.html')
+    topwear = Product.objects.filter(category='topwear')
+    bottomwear = Product.objects.filter(category='bottomwear')
+    mobile = Product.objects.filter(category='mobile')
+    laptop = Product.objects.filter(category='laptop')
+    return render(request,'rbk/home.html', {
+        'topwear': topwear,
+        'bottomwear': bottomwear,
+        'mobile': mobile,
+        'laptop': laptop
+    })
 
 @login_required
 def address(request):
@@ -162,11 +173,13 @@ class LoginView(View):
           
 
 def mobile(request,data=None):
-    if data == None:
-       mobile = Product.object.filter(category='mobile')
-    elif data == 'Redmi' or data == 'Samasung':
-        mobile = Product.object.filter(category='mobile').filter(brand=data)   
-    return render(request,'rbk/mobile.html',{'mobile':mobile})
+    if data is None:
+        mobiles = Product.objects.filter(category='mobile')
+    elif data in ['Redmi', 'Samsung']:
+        mobiles = Product.objects.filter(category='mobile', brand=data)
+    else:
+        mobiles = Product.objects.filter(category='mobile')
+    return render(request, 'rbk/mobile.html', {'mobiles': mobiles})
 
 class customerregistration(View):
     def get(self,request):
