@@ -1,0 +1,30 @@
+{% extends 'rbk/base.html' %}
+{% load static %}
+{% block title %}Bottomwear{% endblock title %}
+{% block main-content %}
+<div class="container my-5">
+ <div class="row">
+  <div class="col-sm-3">
+   Side Bar for Bottomwear filter
+  </div>
+  <div class="col-sm-8 offset-sm-1">
+   <div class="row">
+     {% for bottomwear in bottomwears %}
+       <div class="col-sm-4 mb-3">
+         <div class="card">
+           <img src="{{ bottomwear.product_image.url }}" class="card-img-top" alt="{{ bottomwear.title }}">
+           <div class="card-body">
+             <h5 class="card-title">{{ bottomwear.title }}</h5>
+             <p class="card-text">Rs. {{ bottomwear.discounted_price }}</p>
+             <a href="{% url 'product-detail' bottomwear.id %}" class="btn btn-primary">View</a>
+           </div>
+         </div>
+       </div>
+     {% empty %}
+       <div class="col-12">No bottomwears found.</div>
+     {% endfor %}
+   </div>
+  </div>
+ </div>
+</div>
+{% endblock main-content %}

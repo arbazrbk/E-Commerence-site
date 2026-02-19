@@ -13,11 +13,11 @@
    <p>Product Description: {{ product.description }}</p> <br>
    <h4>Rs. {{ product.discounted_price }} <small class="fw-light text-decoration-line-through">{{product.selling_price}}</small></h4> <br>
    {% if item_already_in_cart %}
-   <a href="{% url 'showcart' %}" class="btn btn-primary shadow px-5 py-2">Go to Cart</a>
+   <a href="{% url 'addtocart' %}?product_id={{ product.id }}" class="btn btn-primary shadow px-5 py-2">Go to Cart</a>
    {% else %}
-   <form action="/addtocart/" class ="d-inline">
+   <form action="{% url 'addtocart' %}" class ="d-inline">
     <input type="hidden" name="product_id" value={{ product.id }} id = "product_id">
-    <button type="submit" class="btn btn-primary shadow px-5 py-2">Add to Cart</button>
+    <button type="submit" href = "{% url 'addtocart' %}"class="btn btn-primary shadow px-5 py-2">Add to Cart</button>
    </form>
    {% endif %}
 

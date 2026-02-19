@@ -7,9 +7,24 @@
   <div class="col-sm-3">
    Side Bar for Mobile filter
   </div>
-  <div class="col-sm-8 offset-sm-1">
-   Mobile Product List
-  </div>
+    <div class="col-sm-8 offset-sm-1">
+     <div class="row">
+         {% for mobile in mobiles %}
+             <div class="col-sm-4 mb-3">
+                 <div class="card">
+                     <img src="{{ mobile.product_image.url }}" class="card-img-top" alt="{{ mobile.title }}">
+                     <div class="card-body">
+                         <h5 class="card-title">{{ mobile.title }}</h5>
+                         <p class="card-text">Rs. {{ mobile.discounted_price }}</p>
+                         <a href="{% url 'product-detail' mobile.id %}" class="btn btn-primary">View</a>
+                     </div>
+                 </div>
+             </div>
+         {% empty %}
+             <div class="col-12">No mobiles found.</div>
+         {% endfor %}
+     </div>
+    </div>
  </div>
 </div>
 {% endblock main-content %}

@@ -61,7 +61,7 @@ $('.remove-cart').click(function(){
     var eml = this
     $.ajax({
         type: "GET",
-        url: "/removecart",
+        url: "/removecart/?prod_id=" + id,
         data: {
             prod_id: id
         },
