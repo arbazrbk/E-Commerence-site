@@ -1,4 +1,3 @@
-from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Customer, Product, Cart
 from django.views import View
@@ -9,65 +8,38 @@ from .models import orderplace
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth.models import User
+from django.db import transaction
 
 
 
-class profileview(View):
-
+class profileview(LoginRequiredMixin, View):
     def get(self, request):
-        context = self.get_context()
-        return render(request, 'rbk/profile.html', context)
+        # Show the profile form with existing data if available
+        try:
+            customer = Customer.objects.get(User=request.user)
+            form = Registrationforms(instance=customer)
+        except Customer.DoesNotExist:
+            form = Registrationforms()
+        return render(request, 'rbk/profile.html', {'form': form})
 
     def post(self, request):
-        name = request.POST.get('inputName', '').strip()
-        address = request.POST.get('inputAddress', '').strip()
-        address2 = request.POST.get('inputAddress2', '').strip()
-        city = request.POST.get('inputCity', '').strip()
-        state = request.POST.get('inputState', '').strip()
-        zipcode = request.POST.get('inputZip', '').strip()
-        messages = []
-        if not name or not address or not city or not state or not zipcode:
-            messages.append('Please fill all required fields.')
+        # Save or update the profile data
+        try:
+            customer = Customer.objects.get(User=request.user)
+            form = Registrationforms(request.POST, instance=customer)
+        except Customer.DoesNotExist:
+            form = Registrationforms(request.POST)
+        if form.is_valid():
+            customer = form.save(commit=False)
+            customer.User = request.user
+            customer.save()
+            messages.success(request, 'Profile updated successfully!')
         else:
-            # Always create a new Customer address for the current user
-            from .models import Customer
-            Customer.objects.create(
-                User=request.user,
-                name=name,
-                locality=address,
-                state=state,
-                zipcode=zipcode
-            )
-            messages.append('New address added successfully!')
-        context = self.get_context()
-        context.update({
-            'form_data': {
-                'inputName': name,
-                'inputAddress': address,
-                'inputAddress2': address2,
-                'inputCity': city,
-                'inputState': state,
-                'inputZip': zipcode,
-            },
-            'messages': messages
-        })
-        return render(request, 'rbk/profile.html', context)
-
-    def get_context(self):
-        topwear = Product.objects.filter(category='topwear')
-        bottomwear = Product.objects.filter(category='bottomwear')
-        mobile = Product.objects.filter(category='mobile')
-        laptop = Product.objects.filter(category='laptop')
-        return {
-            'topwear': topwear,
-            'bottomwear': bottomwear,
-            'mobile': mobile,
-            'laptop': laptop
-        }
-
-    def post(self, request):
-        # Handle POST data here if needed
-        return self.get(request)
+            messages.error(request, 'Please correct the errors below.')
+        return render(request, 'rbk/profile.html', {'form': form})
 
 
 class ProductDetailView(View):
@@ -89,7 +61,7 @@ def addtocart(request):
     product_id = request.GET.get('product_id') 
     if not product_id: 
         messages.error(request, 'No product selected to add to cart.') 
-        return redirect('emptycart') 
+        return redirect('showcart') 
     try: 
         
         product = Product.objects.get(id=product_id) 
@@ -110,7 +82,7 @@ def addtocart(request):
         return redirect('emptycart') 
     return redirect('showcart') 
 
-@login_required
+
 def showcart(request):
     if request.user.is_authenticated:
         user = request.user
@@ -118,10 +90,10 @@ def showcart(request):
         amount =0.0
         shipingamount = 70.0
         totalamount = 0.0
-        cart_product = [p for p in Cart.objects.all() if p.user == user]
-        if cart_product:
-            for p in cart_product:
-                tempamount = (p.quantity * p.product.discounted_price)
+        # cart_product = [c.product for c in cart]
+        if cart:
+            for c in cart:
+                tempamount = (c.quantity * c.product.discounted_price)
                 amount += tempamount
             totalamount = amount + shipingamount
             return render(request,'rbk/addtocart.html', {'carts': cart, 'totalamount': totalamount , 'amount': amount,'shipingamount': shipingamount})
@@ -191,12 +163,16 @@ def remove_cart(request):
 @login_required                              
 def paymentdone(request):
     user = request.user
-    custid = request.GET.get('custid')
+    custid = request.POST.get('custid') or request.GET.get('custid')
     cart = Cart.objects.filter(user=user)
     for c in cart:
+        print(c.product, c.quantity)
         orderplace(user=user, customer_id=custid, product=c.product, quantity=c.quantity).save()
         c.delete()
-    return redirect('orders')    
+    return redirect('payment_success')
+
+def payment_success(request):
+    return render(request,'rbk/payment_successful.html')
 
 @login_required                                      
 def buynow(request):
@@ -204,11 +180,46 @@ def buynow(request):
 
 @login_required
 def changepassword(request):
+    user = request.user
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if not user.check_password(current_password):
+            messages.error(request, 'Current password is incorrect.')
+            return redirect('changepassword')
+
+        if new_password != confirm_password:
+            messages.error(request, 'New password and confirm password do not match.')
+            return redirect('changepassword')
+
+        user.set_password(new_password)
+        user.save()
+        messages.success(request, 'Password changed successfully. Please log in again.')
+        logout(request)
+        return redirect('login')
+    
     return render(request,'rbk/changepassword.html')
 
 
-def LoginView(request):  
-        return render(request,'rbk/login.html')
+def LoginView(request):
+    if request.method == 'POST':
+        form = Loginforms(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('home')
+            else:
+                messages.error(request, "Invalid username or password.")
+        else:
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = Loginforms()
+    return render(request, 'rbk/login.html', {'form': form})
 
 @login_required
 def topwear(request,data=None):
@@ -250,29 +261,36 @@ def mobile(request,data=None):
         mobiles = Product.objects.filter(category='mobile')
     return render(request, 'rbk/mobile.html', {'mobiles': mobiles})
 
+
+
 class customerregistration(View):
-    def get(self,request):
-        foam = Registrationforms()
-        return render(request,'rbk/customerregistration.html',{'form':foam})
-    
-    def post(self,request):
+    def get(self, request):
+        form = Registrationforms()
+        return render(request, 'rbk/customerregistration.html', {'form': form})
+
+    def post(self, request):
         form = Registrationforms(request.POST)
-        if form.is_valid():
-            messages.success(request,'Congratulations!! Registered Successfully')
-        return render(request,'rbk/customerregistration.html',{'form':form})
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        # You can add email or other fields as needed
+        if form.is_valid() and email and password:
+            try:
+                with transaction.atomic():
+                    user = User.objects.create_user(username=email, password=password)
+                    customer = form.save(commit=False)
+                    customer.User = user
+                    customer.save()
+                messages.success(request, 'Congratulations!! Registered Successfully')
+                return redirect('login')
+            except Exception as e:
+                messages.error(request, f'Registration failed: {e}')
+        else:
+            messages.error(request, 'Please fill all fields correctly.')
+        return render(request, 'rbk/customerregistration.html', {'form': form})
 
 @login_required
-class profile(View):
-    def get(self,request):
-        foam = Registrationforms()
-        return render(request,'rbk/profile.html',{'form':foam})
-    
-    def post(self,request):
-        form = Registrationforms(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request,'Congratulations!! Registered Successfully')
-        return render(request,'rbk/profile.html',{'form':form})
+def home(request):
+    return render(request,'rbk/home.html')
 
 @login_required
 def orders(request):
@@ -292,8 +310,17 @@ def checkout(request):
     for p in cart_product:
         tempamount = (p.quantity * p.product.discounted_price)
         amount += tempamount
-        totalamount = amount + shipingamount
+        totalamount = amount + shipingamount   
     return render(request, 'rbk/checkout.html', {'add': add, 'totalamount': totalamount, 'cart_product': cart_product})    
 
 def emptycart(request):
     return render(request,'rbk/emptycart.html')
+
+
+
+def logout_view(request):
+    user = request.user
+    if user.is_authenticated:
+        logout(request)
+    return redirect('login')
+
