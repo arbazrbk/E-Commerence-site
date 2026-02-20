@@ -262,8 +262,17 @@ class customerregistration(View):
         return render(request,'rbk/customerregistration.html',{'form':form})
 
 @login_required
-def profile(request):
-    return render(request,'rbk/home.html')
+class profile(View):
+    def get(self,request):
+        foam = Registrationforms()
+        return render(request,'rbk/profile.html',{'form':foam})
+    
+    def post(self,request):
+        form = Registrationforms(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request,'Congratulations!! Registered Successfully')
+        return render(request,'rbk/profile.html',{'form':form})
 
 @login_required
 def orders(request):
