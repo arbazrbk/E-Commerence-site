@@ -331,3 +331,16 @@ def search(request):
         results = Product.objects.filter(title__icontains=query)
     return render(request, 'rbk/search_results.html', {'results': results, 'query': query})
 
+from django.db.models import Q
+
+def get_related_products(product):
+    # Recommend products from same category, excluding current product
+    return Product.objects.filter(Q(category=product.category) & ~Q(id=product.id))[:4]
+
+from django import template
+register = template.Library()
+
+@register.filter
+def get_related_products(product):
+    return get_related_products(product)
+

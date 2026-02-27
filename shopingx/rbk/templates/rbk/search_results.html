@@ -1,23 +1,47 @@
 {% extends 'rbk/base.html' %}
+{% load product_extras %}
 {% block main-content %}
-<h2>Search Results for "{{ query }}"</h2>
-{% if results %}
-    <div class="row">
-    {% for product in results %}
-        <div class="col-md-3 mb-4">
-            <div class="card h-100">
-                <img src="{{ product.product_image.url }}" class="card-img-top" alt="{{ product.title }}" style="height:200px;object-fit:cover;">
-                <div class="card-body">
-                    <h5 class="card-title">{{ product.title }}</h5>
-                    <p class="card-text">{{ product.brand }}</p>
-                    <p class="card-text">Rs. {{ product.discounted_price }}</p>
-                    <a href="{% url 'product-detail' product.id %}" class="btn btn-primary">View Details</a>
+<div class="container mt-4">
+    <h2>Search Results for "{{ query }}"</h2>
+    {% if results %}
+        {% for product in results %}
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ product.product_image.url }}" class="card-img-top" alt="{{ product.title }}" style="height:250px;object-fit:cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.title }}</h5>
+                        <p class="card-text">Brand: <b>{{ product.brand }}</b></p>
+                        <p class="card-text">Category: <span class="badge bg-info text-dark">{{ product.category }}</span></p>
+                        <p class="card-text">Price: <span class="text-success fw-bold">Rs. {{ product.discounted_price }}</span> <del class="text-danger">Rs. {{ product.selling_price }}</del></p>
+                        <p class="card-text small">{{ product.description }}</p>
+                        <a href="{% url 'product-detail' product.id %}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4 class="mb-3">Related Products</h4>
+                <div class="row">
+                {% for rel in product|get_related_products %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <img src="{{ rel.product_image.url }}" class="card-img-top" alt="{{ rel.title }}" style="height:120px;object-fit:cover;">
+                            <div class="card-body p-2">
+                                <h6 class="card-title">{{ rel.title }}</h6>
+                                <p class="card-text small">Rs. {{ rel.discounted_price }}</p>
+                                <a href="{% url 'product-detail' rel.id %}" class="btn btn-outline-primary btn-sm">View</a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12"><p>No related products found.</p></div>
+                {% endfor %}
                 </div>
             </div>
         </div>
-    {% endfor %}
-    </div>
-{% else %}
-    <p>No products found.</p>
-{% endif %}
+        {% endfor %}
+    {% else %}
+        <p>No products found.</p>
+    {% endif %}
+</div>
 {% endblock %}
