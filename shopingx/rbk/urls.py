@@ -1,4 +1,3 @@
-
 from django.urls import path
 from rbk import views
 
@@ -26,5 +25,5 @@ urlpatterns = [
     path('emptycart/', views.emptycart, name='emptycart'),
     path('logout/', views.logout_view, name='logout'),
     path('payment-success/', views.payment_success, name='payment_success'),
-   
+    path('search/', views.search, name='search'),
 ]

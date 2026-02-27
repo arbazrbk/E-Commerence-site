@@ -12,8 +12,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.models import User
 from django.db import transaction
-
-
+from django.shortcuts import render
+from .models import Product
 
 class profileview(LoginRequiredMixin, View):
     def get(self, request):
@@ -323,4 +323,11 @@ def logout_view(request):
     if user.is_authenticated:
         logout(request)
     return redirect('login')
+
+def search(request):
+    query = request.GET.get('q')
+    results = []
+    if query:
+        results = Product.objects.filter(title__icontains=query)
+    return render(request, 'rbk/search_results.html', {'results': results, 'query': query})
 
